@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>¡Bienvenido a nuestra tienda!</h1>
+        </div>
+        <div class="content">
+            <p>Hola {{ user.username }},</p>
+            <p>¡Gracias por registrarte en nuestra tienda de impresión 3D! Estamos emocionados de tenerte como parte de nuestra comunidad.</p>
+            <p>En nuestra tienda encontrarás:</p>
+            <ul>
+                <li>Figuras personalizadas</li>
+                <li>Repuestos y piezas a medida</li>
+                <li>Diseños únicos</li>
+            </ul>
+            <p>Si tienes alguna pregunta, no dudes en contactarnos.</p>
+        </div>
+        <div class="footer">
+            <p>© {% now "Y" %} Tienda Impresión 3D. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>

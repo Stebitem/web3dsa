@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <!-- Imagen del producto -->
+        <div class="col-md-6 mb-4">
+            {% if product.image_url %}
+                <img src="{{ product.image_url }}" alt="{{ product.name }}" class="img-fluid rounded">
+            {% else %}
+                <svg class="img-fluid rounded" width="100%" height="400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder" preserveAspectRatio="xMidYMid slice" focusable="false">
+                    <title>Sin imagen</title>
+                    <rect width="100%" height="100%" fill="#868e96"></rect>
+                    <text x="50%" y="50%" fill="#dee2e6" dy=".3em" text-anchor="middle">Sin imagen</text>
+                </svg>
+            {% endif %}
+        </div>
+
+        <!-- Detalles del producto -->
+        <div class="col-md-6">
+            <h1 class="mb-3">{{ product.name }}</h1>
+            <p class="lead mb-4">{{ product.description }}</p>
+            <div class="d-flex align-items-center mb-4">
+                <h2 class="h3 mb-0 me-4">${{ product.price }}</h2>
+                {% if product.stock > 0 %}
+                    <span class="badge bg-success">En stock ({{ product.stock }})</span>
+                {% else %}
+                    <span class="badge bg-danger">Agotado</span>
+                {% endif %}
+            </div>
+            
+            {% if user.is_authenticated and product.stock > 0 %}
+                <button class="btn btn-primary btn-lg add-to-cart" data-product-id="{{ product.id }}">
+                    Añadir al carrito
+                </button>
+            {% elif not user.is_authenticated %}
+                <a href="{% url 'myshop:login' %}" class="btn btn-primary btn-lg">Inicia sesión para comprar</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sección de valoraciones -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3>Valoraciones</h3>
+            
+            {% if user.is_authenticated and not user_review %}
+                <form method="post" class="mb-4">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="rating" class="form-label">Tu valoración</label>
+                        <select name="rating" id="rating" class="form-select" required>
+                            <option value="">Selecciona una valoración</option>
+                            <option value="5">★★★★★ Excelente</option>
+                            <option value="4">★★★★☆ Muy bueno</option>
+                            <option value="3">★★★☆☆ Bueno</option>
+                            <option value="2">★★☆☆☆ Regular</option>
+                            <option value="1">★☆☆☆☆ Malo</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">Tu comentario</label>
+                        <textarea name="comment" id="comment" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Enviar valoración</button>
+                </form>
+            {% endif %}
+
+            {% if reviews %}
+                <div class="list-group">
+                    {% for review in reviews %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{ review.user.username }}</h5>
+                                <small class="text-muted">
+                                    {% for i in "12345"|make_list %}
+                                        {% if forloop.counter <= review.rating %}
+                                            ★
+                                        {% else %}
+                                            ☆
+                                        {% endif %}
+                                    {% endfor %}
+                                </small>
+                            </div>
+                            <p class="mb-1">{{ review.comment }}</p>
+                            <small class="text-muted">{{ review.created_at|date:"d/m/Y H:i" }}</small>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted">No hay valoraciones todavía.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addToCartBtn = document.querySelector('.add-to-cart');
+    if (addToCartBtn) {
+        addToCartBtn.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            
+            fetch(`/cart/add/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-success position-fixed top-0 start-50 translate-middle-x mt-3';
+                    alert.style.zIndex = '1000';
+                    alert.textContent = data.message;
+                    document.body.appendChild(alert);
+                    
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 3000);
+                }
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Pedidos{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Mis Pedidos</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if orders %}
+        <div class="list-group">
+            {% for order in orders %}
+                <a href="{% url 'myshop:order_detail' order.id %}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">Pedido #{{ order.id }}</h5>
+                        <small class="text-muted">{{ order.created_at|date:"d/m/Y H:i" }}</small>
+                    </div>
+                    <p class="mb-1">Total: ${{ order.total }}</p>
+                    <small class="text-muted">
+                        Estado: 
+                        {% if order.status == 'pending' %}
+                            <span class="badge bg-warning">Pendiente</span>
+                        {% elif order.status == 'processing' %}
+                            <span class="badge bg-info">En proceso</span>
+                        {% elif order.status == 'shipped' %}
+                            <span class="badge bg-primary">Enviado</span>
+                        {% elif order.status == 'delivered' %}
+                            <span class="badge bg-success">Entregado</span>
+                        {% else %}
+                            <span class="badge bg-danger">Cancelado</span>
+                        {% endif %}
+                    </small>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            No tienes pedidos todavía. 
+            <a href="{% url 'myshop:index' %}" class="alert-link">¡Empieza a comprar!</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

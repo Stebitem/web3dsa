@@ -1,0 +1,43 @@
+def index(request):
+    # Sistema de búsqueda y filtrado
+    query = request.GET.get('q')
+    category = request.GET.get('category')
+    sort = request.GET.get('sort', '-created_at')
+    
+    # Obtener todos los productos
+    products = Product.objects.all()
+    
+    # Filtrado por búsqueda
+    if query:
+        products = products.filter(
+            Q(name__icontains=query) |
+            Q(description__icontains=query)
+        )
+    
+    # Filtrado por categoría
+    if category:
+        products = products.filter(category=category)
+    
+    # Ordenamiento
+    if sort == 'price':
+        products = products.order_by('price')
+    elif sort == '-price':
+        products = products.order_by('-price')
+    elif sort == 'name':
+        products = products.order_by('name')
+    else:
+        products = products.order_by('-created_at')
+    
+    # Paginación
+    paginator = Paginator(products, 12)  # 12 productos por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        "products": page_obj,
+        "query": query,
+        "sort": sort,
+        "category": category,
+        "year": datetime.now().year,
+    }
+    return render(request, "index.html", context)

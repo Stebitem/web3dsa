@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}Carrito de Compras{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Tu Carrito de Compras</h1>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    {% if cart.items.all %}
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Precio</th>
+                                <th>Cantidad</th>
+                                <th>Subtotal</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in cart.items.all %}
+                            <tr id="cart-item-{{ item.id }}">
+                                <td>{{ item.product.name }}</td>
+                                <td>${{ item.product.price }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary update-quantity" 
+                                                data-item-id="{{ item.id }}" data-action="decrease">-</button>
+                                        <span class="btn btn-sm btn-outline-secondary quantity">{{ item.quantity }}</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary update-quantity" 
+                                                data-item-id="{{ item.id }}" data-action="increase">+</button>
+                                    </div>
+                                </td>
+                                <td class="subtotal">${{ item.get_cost }}</td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-danger remove-item" 
+                                            data-item-id="{{ item.id }}">Eliminar</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                <td id="cart-total">${{ cart.get_total_price }}</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-between mt-3">
+                    <a href="{% url 'myshop:index' %}" class="btn btn-secondary">Seguir Comprando</a>
+                    <a href="{% url 'myshop:checkout' %}" class="btn btn-primary">Proceder al Pago</a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="card">
+            <div class="card-body text-center">
+                <p class="mb-3">Tu carrito está vacío.</p>
+                <a href="{% url 'myshop:index' %}" class="btn btn-primary">Ir a la Tienda</a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% if cart.items.all %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Actualizar cantidad
+    document.querySelectorAll('.update-quantity').forEach(button => {
+        button.addEventListener('click', function() {
+            const itemId = this.dataset.itemId;
+            const action = this.dataset.action;
+            
+            fetch(`/cart/update/${itemId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: `action=${action}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.cart_total === 0) {
+                    location.reload();
+                    return;
+                }
+                
+                const row = document.getElementById(`cart-item-${itemId}`);
+                row.querySelector('.quantity').textContent = data.item_quantity;
+                row.querySelector('.subtotal').textContent = `$${data.item_subtotal}`;
+                document.getElementById('cart-total').textContent = `$${data.cart_total_price}`;
+            });
+        });
+    });
+
+    // Eliminar item
+    document.querySelectorAll('.remove-item').forEach(button => {
+        button.addEventListener('click', function() {
+            if (!confirm('¿Estás seguro de que deseas eliminar este producto del carrito?')) {
+                return;
+            }
+            
+            const itemId = this.dataset.itemId;
+            
+            fetch(`/cart/remove/${itemId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al eliminar el producto');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const row = document.getElementById(`cart-item-${itemId}`);
+                if (row) {
+                    row.remove();
+                }
+                
+                if (data.cart_total === 0) {
+                    location.reload();
+                } else {
+                    document.getElementById('cart-total').textContent = `$${data.cart_total_price}`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Hubo un error al eliminar el producto. Por favor, intenta nuevamente.');
+            });
+        });
+    });
+});
+</script>
+{% endif %}
+{% endblock %}
