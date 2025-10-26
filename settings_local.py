@@ -4,7 +4,7 @@ BASE_DIR = Path(__file__).resolve().parent
 
 SECRET_KEY = 'django-insecure-reemplazar-esta-clave-en-produccion'
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
