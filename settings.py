@@ -1,10 +1,13 @@
 from pathlib import Path
+import os
 
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-reemplazar-esta-clave-en-produccion'
-DEBUG = True
-ALLOWED_HOSTS = ["https://web3dsa.onrender.com/"]
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-reemplazar-esta-clave-en-produccion')
+DEBUG = False
+
+ALLOWED_HOSTS = ['web3dsa.onrender.com', 'localhost', '127.0.0.1']
+CSRF_TRUSTED_ORIGINS = ['https://web3dsa.onrender.com']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -26,25 +29,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'myshop.urls'
-
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
-
-WSGI_APPLICATION = None
+ROOT_URLCONF = 'web3dsa.urls'
+WSGI_APPLICATION = 'web3dsa.wsgi.application'
 
 DATABASES = {
     'default': {
@@ -61,7 +47,9 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
